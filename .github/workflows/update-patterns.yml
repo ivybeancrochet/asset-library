@@ -32,4 +32,3 @@ jobs:
           git add patterns.json
           git commit -m 'Update patterns.json' || echo 'No changes to commit'
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
-
