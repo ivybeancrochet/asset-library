@@ -24,11 +24,12 @@ jobs:
             .map(f => \`patterns/\${f}\`);
           fs.writeFileSync('patterns.json', JSON.stringify(files, null, 2));
           "
-
+          
       - name: Commit and push changes
         run: |
           git config user.name 'github-actions'
           git config user.email 'github-actions@github.com'
           git add patterns.json
           git commit -m 'Update patterns.json' || echo 'No changes to commit'
-          git push
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+
