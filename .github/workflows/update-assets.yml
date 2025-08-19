@@ -5,10 +5,6 @@ permissions:
 
 on:
   push:
-    paths:
-      - "patterns/**.pdf"
-      - "photos/**/*.{png,jpg,jpeg}"
-      - ".github/workflows/update-assets.yml"
 
 jobs:
   build:
