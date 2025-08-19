@@ -18,14 +18,11 @@ jobs:
         run: |
           node -e "
           const fs = require('fs');
-          const path = require('path');
           const dir = 'patterns';
-          const files = fs.readdirSync(dir).filter(f => f.toLowerCase().endsWith('.pdf'));
-          const data = files.map(f => ({
-            name: path.basename(f, '.pdf'),
-            file: path.join(dir, f).replace(/\\/g, '/')
-          }));
-          fs.writeFileSync('patterns.json', JSON.stringify(data, null, 2));
+          const files = fs.readdirSync(dir)
+            .filter(f => f.toLowerCase().endsWith('.pdf'))
+            .map(f => \`patterns/\${f}\`);
+          fs.writeFileSync('patterns.json', JSON.stringify(files, null, 2));
           "
 
       - name: Commit and push changes
