@@ -1,7 +1,7 @@
 name: Update assets.json
 
 permissions:
-  contents: write  # gives write permission to the default GITHUB_TOKEN
+  contents: write
 
 on:
   push:
@@ -27,12 +27,10 @@ jobs:
           const patternsDir = 'patterns';
           const photosDir = 'photos';
 
-          // Get PDFs from patterns/
           const patternFiles = fs.existsSync(patternsDir) ? fs.readdirSync(patternsDir)
             .filter(f => f.toLowerCase().endsWith('.pdf'))
             .map(f => \`patterns/\${f}\`) : [];
 
-          // Get images from photos/
           const photoFiles = fs.existsSync(photosDir) ? fs.readdirSync(photosDir)
             .filter(f => /\.(png|jpe?g)$/i.test(f))
             .map(f => \`photos/\${f}\`) : [];
