@@ -13,7 +13,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
 
       - name: Generate patterns.json
         run: |
@@ -25,11 +24,12 @@ jobs:
             .map(f => \`patterns/\${f}\`);
           fs.writeFileSync('patterns.json', JSON.stringify(files, null, 2));
           "
-          
+
       - name: Commit and push changes
         run: |
           git config user.name 'github-actions'
           git config user.email 'github-actions@github.com'
           git add patterns.json
           git commit -m 'Update patterns.json' || echo 'No changes to commit'
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/ivybeancrochet/pattern-library.git
           git push origin HEAD:main
