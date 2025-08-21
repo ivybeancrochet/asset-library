@@ -22,13 +22,15 @@ jobs:
           const fs = require('fs');
           const patternsDir = 'patterns';
           const photosDir = 'photos';
+          const allowedPatternType = ['.pdf', '.txt', '.md'];
+          const allowedPhotoType = ['.png', '.jpg', '.jpg'];
 
           const patternFiles = fs.existsSync(patternsDir) ? fs.readdirSync(patternsDir)
-            .filter(f => f.toLowerCase().endsWith('.pdf'))
+            .filter(f => allowedPatternType.some(ext => f.toLowerCase().endsWith(ext)))
             .map(f => \`patterns/\${f}\`) : [];
 
           const photoFiles = fs.existsSync(photosDir) ? fs.readdirSync(photosDir)
-            .filter(f => /\.(png|jpe?g)$/i.test(f))
+            .filter(f => allowedPhotoType.some(ext => f.toLowerCase().endsWith(ext)))
             .map(f => \`photos/\${f}\`) : [];
 
           const assets = {
