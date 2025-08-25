@@ -22,7 +22,7 @@ jobs:
           const fs = require('fs');
           const patternsDir = 'patterns';
           const photosDir = 'photos';
-          const allowedFileTypes = ['.png', '.jpg', '.jpg'];
+          const allowedFileTypes = ['.png', '.jpg', '.jpeg'];
 
           const patternFiles = fs.existsSync(patternsDir) ? fs.readdirSync(patternsDir)
             .filter(f => allowedFileTypes.some(ext => f.toLowerCase().endsWith(ext)))
