@@ -22,15 +22,14 @@ jobs:
           const fs = require('fs');
           const patternsDir = 'patterns';
           const photosDir = 'photos';
-          const allowedPatternType = ['.pdf', '.txt', '.md'];
-          const allowedPhotoType = ['.png', '.jpg', '.jpg'];
+          const allowedFileTypes = ['.png', '.jpg', '.jpg'];
 
           const patternFiles = fs.existsSync(patternsDir) ? fs.readdirSync(patternsDir)
-            .filter(f => allowedPatternType.some(ext => f.toLowerCase().endsWith(ext)))
+            .filter(f => allowedFileTypes.some(ext => f.toLowerCase().endsWith(ext)))
             .map(f => \`patterns/\${f}\`) : [];
 
           const photoFiles = fs.existsSync(photosDir) ? fs.readdirSync(photosDir)
-            .filter(f => allowedPhotoType.some(ext => f.toLowerCase().endsWith(ext)))
+            .filter(f => allowedFileTypes.some(ext => f.toLowerCase().endsWith(ext)))
             .map(f => \`photos/\${f}\`) : [];
 
           const assets = {
@@ -43,8 +42,8 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git config user.name 'github-actions'
-          git config user.email 'github-actions@github.com'
+          git config user.name 'uwkx'
+          git config user.email 'uk8002@proton.me'
           git add assets.json
           git diff --cached --quiet || git commit -m 'Update assets.json'
           git push origin HEAD:main
