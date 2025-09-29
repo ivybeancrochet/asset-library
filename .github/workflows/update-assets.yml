@@ -29,12 +29,12 @@ jobs:
           python - <<'EOF'
           from PIL import Image, ImageDraw, ImageFont
           import os, math
-
+          
           photos_dir = "photos"
           watermark_text = "© IvyBeanCrochet"
           font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
           font_size_ratio = 0.08
-
+          
           for filename in os.listdir(photos_dir):
               if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
                   continue
@@ -45,7 +45,12 @@ jobs:
               draw = ImageDraw.Draw(overlay)
               font_size = int(width * font_size_ratio)
               font = ImageFont.truetype(font_path, font_size)
-              text_width, text_height = draw.textsize(watermark_text, font=font)
+              
+              # Get text size using textbbox
+              bbox = draw.textbbox((0,0), watermark_text, font=font)
+              text_width = bbox[2] - bbox[0]
+              text_height = bbox[3] - bbox[1]
+              
               angle = math.degrees(math.atan2(height, width))
               cx, cy = width // 2, height // 2
               txt_img = Image.new("RGBA", img.size, (255,255,255,0))
