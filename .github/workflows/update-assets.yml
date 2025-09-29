@@ -29,48 +29,57 @@ jobs:
           python - <<'EOF'
           from PIL import Image, ImageDraw, ImageFont
           import os, math
-
+          
           photos_dir = "photos"
           watermark_text = "© IvyBeanCrochet"
           font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
           font_size_ratio = 0.08
-
+          
+          def has_watermark(img):
+              # Check a small square region near center for pixels matching watermark white with about 25% opacity
+              width, height = img.size
+              check_region = img.crop((width//2 - 10, height//2 - 10, width//2 + 10, height//2 + 10))
+              pixels = check_region.getdata()
+              for r, g, b, a in pixels:
+                  if (r, g, b) == (255, 255, 255) and 40 <= a <= 70:  # approx alpha=64 with tolerance
+                      return True
+              return False
+          
           for filename in os.listdir(photos_dir):
               if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
                   continue
               path = os.path.join(photos_dir, filename)
               img = Image.open(path).convert("RGBA")
+              if has_watermark(img):
+                  print(f"Skipping {filename}, watermark detected")
+                  continue
               width, height = img.size
-              overlay = Image.new("RGBA", img.size, (255,255,255,0))
-              draw = ImageDraw.Draw(overlay)
               font_size = int(width * font_size_ratio)
               font = ImageFont.truetype(font_path, font_size)
-
-              # Get text size using textbbox
+          
+              # Prepare the watermark image (same as before)
+              overlay = Image.new("RGBA", img.size, (255,255,255,0))
+              draw = ImageDraw.Draw(overlay)
+          
               bbox = draw.textbbox((0,0), watermark_text, font=font)
               text_width = bbox[2] - bbox[0]
               text_height = bbox[3] - bbox[1]
-
+          
               angle = math.degrees(math.atan2(height, width))
               cx, cy = width // 2, height // 2
               txt_img = Image.new("RGBA", (text_width, text_height), (255,255,255,0))
               txt_draw = ImageDraw.Draw(txt_img)
-              txt_draw.text((0, 0), watermark_text, font=font, fill=(255,255,255,64))
-
-              # Rotate the text image with expand to avoid cutting off text
+              txt_draw.text((0, 0), watermark_text, font=font, fill=(255,255,255,110))
+          
               rotated_txt_img = txt_img.rotate(angle, expand=1)
-
-              # Create a new transparent layer same size as original image
               txt_layer = Image.new("RGBA", img.size, (255,255,255,0))
-              # Calculate position to center rotated text on the image
               x = (width - rotated_txt_img.width) // 2
               y = (height - rotated_txt_img.height) // 2
-              # Paste rotated text on txt_layer with mask for transparency
               txt_layer.paste(rotated_txt_img, (x, y), rotated_txt_img)
-
-              # Composite original image with the text layer
+          
               final_img = Image.alpha_composite(img, txt_layer)
               final_img.convert("RGB").save(path)
+
           EOF
           
       - name: Generate assets.json
