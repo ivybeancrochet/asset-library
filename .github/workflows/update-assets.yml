@@ -109,12 +109,12 @@ jobs:
       
           fs.writeFileSync('assets.json', JSON.stringify(assets, null, 2));
           "
-
-
+          
       - name: Commit and push changes
         run: |
           git config user.name 'uwkx'
           git config user.email 'uk8002@proton.me'
-          git add assets.json photos
-          git diff --cached --quiet || git commit -m 'Update assets.json and watermark photos'
+          git add assets.json photos patterns
+          git diff --cached --quiet || git commit -m 'Update assets.json and watermark photos and patterns'
           git push origin HEAD:main
+
