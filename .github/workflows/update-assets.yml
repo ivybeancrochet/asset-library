@@ -69,7 +69,7 @@ jobs:
                   txt_img = Image.new("RGBA", (text_width, text_height), (255, 255, 255, 0))
                   txt_draw = ImageDraw.Draw(txt_img)
                   # 110 alpha for ~43% opacity, adjust as needed
-                  txt_draw.text((0, 0), watermark_text, font=font, fill=(0, 0, 0, 185))
+                  txt_draw.text((0, 0), watermark_text, font=font, fill=(0, 0, 0, 160))
 
                   rotated_txt_img = txt_img.rotate(angle, expand=1)
                   txt_layer = Image.new("RGBA", img.size, (255, 255, 255, 0))
