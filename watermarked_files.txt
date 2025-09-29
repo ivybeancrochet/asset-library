@@ -1,1 +1,20 @@
 
+patterns/Berry Bears1.JPEG
+patterns/Berry Bears2.JPEG
+patterns/Berry Bears3.jpg
+patterns/Berry Bears4.JPEG
+patterns/Berry Bears5.JPEG
+patterns/Berry Bears6.JPEG
+patterns/Berry Bears7.JPEG
+patterns/Berry Bears8.JPEG
+patterns/Berry Bears9.JPEG
+patterns/Mini Miffy1.JPG
+patterns/Mini Miffy2.JPG
+patterns/Mini Miffy3.JPG
+patterns/Mini Miffy4.JPG
+patterns/Mini Miffy5.JPG
+patterns/Mini Miffy6.JPG
+patterns/Mini Miffy7.JPG
+patterns/Mini Miffy8.JPG
+photos/Berry Bears.JPEG
+photos/Mini Miffy.JPG
