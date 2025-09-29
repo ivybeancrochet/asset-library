@@ -16,6 +16,46 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Pillow
+        run: pip install Pillow
+
+      - name: Add diagonal watermark to photos
+        run: |
+          python - <<'EOF'
+          from PIL import Image, ImageDraw, ImageFont
+          import os, math
+
+          photos_dir = "photos"
+          watermark_text = "© IvyBeanCrochet"
+          font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+          font_size_ratio = 0.08
+
+          for filename in os.listdir(photos_dir):
+              if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
+                  continue
+              path = os.path.join(photos_dir, filename)
+              img = Image.open(path).convert("RGBA")
+              width, height = img.size
+              overlay = Image.new("RGBA", img.size, (255,255,255,0))
+              draw = ImageDraw.Draw(overlay)
+              font_size = int(width * font_size_ratio)
+              font = ImageFont.truetype(font_path, font_size)
+              text_width, text_height = draw.textsize(watermark_text, font=font)
+              angle = math.degrees(math.atan2(height, width))
+              cx, cy = width // 2, height // 2
+              txt_img = Image.new("RGBA", img.size, (255,255,255,0))
+              txt_draw = ImageDraw.Draw(txt_img)
+              txt_draw.text((cx - text_width//2, cy - text_height//2), watermark_text, font=font, fill=(255,255,255,64))
+              txt_img = txt_img.rotate(angle, expand=1)
+              overlay = Image.alpha_composite(img, txt_img)
+              overlay.convert("RGB").save(path)
+          EOF
+
       - name: Generate assets.json
         run: |
           node -e "
@@ -44,6 +84,6 @@ jobs:
         run: |
           git config user.name 'uwkx'
           git config user.email 'uk8002@proton.me'
-          git add assets.json
-          git diff --cached --quiet || git commit -m 'Update assets.json'
+          git add assets.json photos
+          git diff --cached --quiet || git commit -m 'Update assets.json and watermark photos'
           git push origin HEAD:main
