@@ -1,4 +1,4 @@
-name: Update assets.json
+###########name: Update assets.json
 
 permissions:
   contents: write
