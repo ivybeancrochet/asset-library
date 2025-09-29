@@ -72,30 +72,36 @@ jobs:
               final_img = Image.alpha_composite(img, txt_layer)
               final_img.convert("RGB").save(path)
           EOF
-
+          
       - name: Generate assets.json
         run: |
           node -e "
           const fs = require('fs');
+          const path = require('path');
           const patternsDir = 'patterns';
           const photosDir = 'photos';
           const allowedFileTypes = ['.png', '.jpg', '.jpeg'];
-
-          const patternFiles = fs.existsSync(patternsDir) ? fs.readdirSync(patternsDir)
-            .filter(f => allowedFileTypes.some(ext => f.toLowerCase().endsWith(ext)))
-            .map(f => `patterns/\${f}`) : [];
-
-          const photoFiles = fs.existsSync(photosDir) ? fs.readdirSync(photosDir)
-            .filter(f => allowedFileTypes.some(ext => f.toLowerCase().endsWith(ext)))
-            .map(f => `photos/\${f}`) : [];
-
+      
+          const patternFiles = fs.existsSync(patternsDir)
+            ? fs.readdirSync(patternsDir)
+                .filter(f => allowedFileTypes.some(ext => f.toLowerCase().endsWith(ext)))
+                .map(f => path.posix.join('patterns', f))
+            : [];
+      
+          const photoFiles = fs.existsSync(photosDir)
+            ? fs.readdirSync(photosDir)
+                .filter(f => allowedFileTypes.some(ext => f.toLowerCase().endsWith(ext)))
+                .map(f => path.posix.join('photos', f))
+            : [];
+      
           const assets = {
             patterns: patternFiles,
             photos: photoFiles,
           };
-
+      
           fs.writeFileSync('assets.json', JSON.stringify(assets, null, 2));
           "
+
 
       - name: Commit and push changes
         run: |
