@@ -66,8 +66,16 @@ jobs:
                   angle = math.degrees(math.atan2(height, width))
                   txt_img = Image.new("RGBA", (text_width, text_height), (255, 255, 255, 0))
                   txt_draw = ImageDraw.Draw(txt_img)
-                  # 110 alpha for ~43% opacity, adjust as needed
-                  txt_draw.text((0, 0), watermark_text, font=font, fill=(0, 0, 0, 60))
+
+                  # Draw watermark shadow in semi-transparent black (offset)
+                  shadow_color = (0, 0, 0, 70)  # black shadow, 40% opacity
+                  offset = 2  # shadow offset in pixels
+                  txt_draw.text((offset, offset), watermark_text, font=font, fill=shadow_color)
+                  
+                  # Draw watermark main text in semi-transparent white on top
+                  main_color = (255, 255, 255, 100)  # white text, ~50% opacity
+                  txt_draw.text((0, 0), watermark_text, font=font, fill=main_color)
+
 
                   rotated_txt_img = txt_img.rotate(angle, expand=1)
                   txt_layer = Image.new("RGBA", img.size, (255, 255, 255, 0))
