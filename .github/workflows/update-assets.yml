@@ -1,5 +1,7 @@
 name: Update assets.json
 
+on:
+  push
 
 permissions:
   contents: write
