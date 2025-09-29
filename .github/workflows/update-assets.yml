@@ -24,26 +24,25 @@ jobs:
       - name: Install Pillow
         run: pip install Pillow
 
-      - name: Add diagonal watermark to photos
+      - name: Add diagonal watermark to photos and patterns with tracking
         run: |
           python - <<'EOF'
           from PIL import Image, ImageDraw, ImageFont
           import os, math
-          
+
           dirs = ["photos", "patterns"]
           watermark_text = "© IvyBeanCrochet"
           font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
           font_size_ratio = 0.08
-          
-          def has_watermark(img):
-              width, height = img.size
-              check_region = img.crop((width//2 - 10, height//2 - 10, width//2 + 10, height//2 + 10))
-              pixels = check_region.getdata()
-              for r, g, b, a in pixels:
-                  if (r, g, b) == (255, 255, 255) and 40 <= a <= 70:
-                      return True
-              return False
-          
+          watermark_list_path = "watermarked_files.txt"
+
+          # Load list of already watermarked images
+          if os.path.exists(watermark_list_path):
+              with open(watermark_list_path, "r") as f:
+                  watermarked_files = set(f.read().splitlines())
+          else:
+              watermarked_files = set()
+
           for photos_dir in dirs:
               if not os.path.isdir(photos_dir):
                   print(f"Directory {photos_dir} does not exist, skipping")
@@ -51,36 +50,44 @@ jobs:
               for filename in os.listdir(photos_dir):
                   if not filename.lower().endswith((".png", ".jpg", ".jpeg")):
                       continue
+                  file_rel_path = f"{photos_dir}/{filename}"
+                  if file_rel_path in watermarked_files:
+                      print(f"Skipping {filename} in {photos_dir}, already watermarked")
+                      continue
                   path = os.path.join(photos_dir, filename)
                   img = Image.open(path).convert("RGBA")
-                  if has_watermark(img):
-                      print(f"Skipping {filename} in {photos_dir}, watermark detected")
-                      continue
                   width, height = img.size
                   font_size = int(width * font_size_ratio)
                   font = ImageFont.truetype(font_path, font_size)
-          
-                  bbox = ImageDraw.Draw(img).textbbox((0, 0), watermark_text, font=font)
+
+                  draw = ImageDraw.Draw(img)
+                  bbox = draw.textbbox((0, 0), watermark_text, font=font)
                   text_width = bbox[2] - bbox[0]
                   text_height = bbox[3] - bbox[1]
-          
+
                   angle = math.degrees(math.atan2(height, width))
-                  cx, cy = width // 2, height // 2
                   txt_img = Image.new("RGBA", (text_width, text_height), (255, 255, 255, 0))
                   txt_draw = ImageDraw.Draw(txt_img)
-                  txt_draw.text((0, 0), watermark_text, font=font, fill=(255, 255, 255, 110))
-          
+                  # 110 alpha for ~43% opacity, adjust as needed
+                  txt_draw.text((0, 0), watermark_text, font=font, fill=(255, 255, 255, 95))
+
                   rotated_txt_img = txt_img.rotate(angle, expand=1)
                   txt_layer = Image.new("RGBA", img.size, (255, 255, 255, 0))
                   x = (width - rotated_txt_img.width) // 2
                   y = (height - rotated_txt_img.height) // 2
                   txt_layer.paste(rotated_txt_img, (x, y), rotated_txt_img)
-          
+
                   final_img = Image.alpha_composite(img, txt_layer)
                   final_img.convert("RGB").save(path)
 
+                  # Track that this file has been watermarked
+                  watermarked_files.add(file_rel_path)
+
+          # Save updated list of watermarked files
+          with open(watermark_list_path, "w") as f:
+              f.write("\n".join(sorted(watermarked_files)))
           EOF
-          
+
       - name: Generate assets.json
         run: |
           node -e "
@@ -89,32 +96,31 @@ jobs:
           const patternsDir = 'patterns';
           const photosDir = 'photos';
           const allowedFileTypes = ['.png', '.jpg', '.jpeg'];
-      
+
           const patternFiles = fs.existsSync(patternsDir)
             ? fs.readdirSync(patternsDir)
                 .filter(f => allowedFileTypes.some(ext => f.toLowerCase().endsWith(ext)))
                 .map(f => path.posix.join('patterns', f))
             : [];
-      
+
           const photoFiles = fs.existsSync(photosDir)
             ? fs.readdirSync(photosDir)
                 .filter(f => allowedFileTypes.some(ext => f.toLowerCase().endsWith(ext)))
                 .map(f => path.posix.join('photos', f))
             : [];
-      
+
           const assets = {
             patterns: patternFiles,
             photos: photoFiles,
           };
-      
+
           fs.writeFileSync('assets.json', JSON.stringify(assets, null, 2));
           "
-          
+
       - name: Commit and push changes
         run: |
           git config user.name 'uwkx'
           git config user.email 'uk8002@proton.me'
-          git add assets.json photos patterns
+          git add assets.json photos patterns watermarked_files.txt
           git diff --cached --quiet || git commit -m 'Update assets.json and watermark photos and patterns'
           git push origin HEAD:main
-
