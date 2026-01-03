@@ -74,7 +74,7 @@ jobs:
                   txt_draw = ImageDraw.Draw(txt_img)
 
                   # Draw watermark shadow in semi-transparent black (offset)
-                  shadow_color = (0, 0, 0, 70)  # black shadow, 40% opacity
+                  shadow_color = (0, 0, 0, 121)
                   offset = 2  # shadow offset in pixels
                   txt_draw.text((offset, offset), watermark_text, font=font, fill=shadow_color)
                   
