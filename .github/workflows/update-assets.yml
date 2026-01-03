@@ -78,7 +78,6 @@ jobs:
                   main_color = (255, 255, 255, 100)  # white text, ~50% opacity
                   txt_draw.text((0, 0), watermark_text, font=font, fill=main_color)
 
-
                   rotated_txt_img = txt_img.rotate(angle, expand=1)
                   txt_layer = Image.new("RGBA", img.size, (255, 255, 255, 0))
                   x = (width - rotated_txt_img.width) // 2
@@ -96,14 +95,18 @@ jobs:
               f.write("\n".join(sorted(watermarked_files)))
           EOF
 
-      - name: Generate assets.json
+      - name: Generate assets.json only if image files changed
         run: |
-          node -e "
+          node - <<'EOF'
           const fs = require('fs');
           const path = require('path');
           const patternsDir = 'patterns';
           const photosDir = 'photos';
           const allowedFileTypes = ['.png', '.jpg', '.jpeg'];
+          const watermarkListPath = 'watermarked_files.txt';
+
+          const watermarkExists = fs.existsSync(watermarkListPath);
+          const watermarkStats = watermarkExists ? fs.statSync(watermarkListPath) : null;
 
           const patternFiles = fs.existsSync(patternsDir)
             ? fs.readdirSync(patternsDir)
@@ -122,13 +125,38 @@ jobs:
             photos: photoFiles,
           };
 
-          fs.writeFileSync('assets.json', JSON.stringify(assets, null, 2));
-          "
+          const assetsJsonPath = 'assets.json';
+          const assetsJson = JSON.stringify(assets, null, 2);
 
-      - name: Commit and push changes
+          let shouldWrite = true;
+
+          if (fs.existsSync(assetsJsonPath)) {
+            const currentAssets = fs.readFileSync(assetsJsonPath, 'utf8');
+            if (currentAssets === assetsJson) {
+              shouldWrite = false;
+            }
+          }
+
+          if (!watermarkExists || !watermarkStats || watermarkStats.mtimeMs === 0) {
+            shouldWrite = true;
+          }
+
+          if (shouldWrite) {
+            fs.writeFileSync(assetsJsonPath, assetsJson);
+            console.log('assets.json updated');
+          } else {
+            console.log('assets.json unchanged, skipping write');
+          }
+          EOF
+
+      - name: Commit and push only when files changed
         run: |
           git config user.name 'uwkx'
           git config user.email 'uk8002@proton.me'
           git add assets.json photos patterns watermarked_files.txt
-          git diff --cached --quiet || git commit -m 'Update assets.json and watermark photos and patterns'
-          git push origin HEAD:main
+          if ! git diff --cached --quiet; then
+            git commit -m 'Update assets.json and watermark photos and patterns'
+            git push origin HEAD:main
+          else
+            echo "No changes detected, skipping commit"
+          fi
